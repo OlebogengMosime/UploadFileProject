@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using UploadFileToDb.Data;
 using UploadFileToDb.FileUploadViewModel;
@@ -20,10 +21,11 @@ namespace UploadFileToDb.Controllers
         }
 
         [HttpGet]
-        public IActionResult Index(FileUploadViewModel.FileUploadViewModel vm)
+        public async Task<IActionResult> Index(FileUploadViewModel.FileUploadViewModel vm)
         {
+            vm.SystemFiles = await _context.FileCreations.ToListAsync();
 
-            vm.SystemFiles = new List<FileCreation>();
+            //vm.SystemFiles = new List<FileCreation>();
 
             return View(vm);
         }
@@ -31,7 +33,7 @@ namespace UploadFileToDb.Controllers
         [HttpPost]
         public async Task<IActionResult> UploadFile(FileUploadViewModel.FileUploadViewModel vm, IFormFile file)
         {
-            var filename = $"{file.FileName}_{DateTime.Now.ToString("yyyymmddhhmmss")}";
+            var filename = $"{DateTime.Now.ToString("yyyymmddhhmmss")}_{file.FileName}";
             var path = $"{_configuration.GetSection("FileManagement:SystemFileUploads").Value}";
             var filepath = Path.Combine(path, filename);
             var fileextension = Path.GetExtension(filename);
