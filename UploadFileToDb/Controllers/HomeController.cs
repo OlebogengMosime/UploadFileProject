@@ -10,11 +10,13 @@ namespace UploadFileToDb.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context)
+        public HomeController(IConfiguration configuration,ILogger<HomeController> logger, ApplicationDbContext context)
         {
             _logger = logger;
             _context = context;
+            _configuration = configuration;
         }
 
         [HttpGet]
@@ -27,12 +29,33 @@ namespace UploadFileToDb.Controllers
         }
 
         [HttpPost]
-        public IActionResult UploadFile(FileUploadViewModel.FileUploadViewModel vm, IFormFile file)
+        public async Task<IActionResult> UploadFile(FileUploadViewModel.FileUploadViewModel vm, IFormFile file)
         {
+            var filename = $"{file.FileName}_{DateTime.Now.ToString("yyyymmddhhmmss")}";
+            var path = $"{_configuration.GetSection("FileManagement:SystemFileUploads").Value}";
+            var filepath = Path.Combine(path, filename);
+            var fileextension = Path.GetExtension(filename);
 
-            vm.SystemFiles = new List<FileCreation>();
+            var stream = new FileStream(filepath, FileMode.Create);
+            await file.CopyToAsync(stream);
 
-            return View(vm);
+
+            var uploadfile = new FileCreation
+            { 
+                FileName = filename,
+                CreatedOn = DateTime.Now,
+                FileType = file.ContentType,
+                Description = vm.Description,
+                Extention = fileextension,
+            };
+
+
+            await _context.AddAsync(uploadfile);
+            await _context.SaveChangesAsync();
+
+            //vm.SystemFiles = new List<FileCreation>();
+
+            return RedirectToAction("Index");
         }
 
         public IActionResult Privacy()

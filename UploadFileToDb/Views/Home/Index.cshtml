@@ -12,13 +12,14 @@
 <div class="col-md-12">
     <form method="post" asp-action="UploadFile" enctype="multipart/form-data">
         <div class="row">
-            <label asp-for="FileName"></label>
+            
             <div class="col-md-6">
+                <label asp-for="FileName"></label>
                 <input type="file" name="file" class="form-control" accept=".jpg, .png, .jpeg" />
             </div>
             <div class="col-md-6">
                 <label asp-for="Description"></label>
-                <input type="text" class="form-control" />
+                <input type="text" asp-for="Description" class="form-control" />
             </div>
             <div class="col-md-6">
                 <input type="submit" class="btn btn-primary mt-2"value="Upload File" />
